@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from "react";
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
+  onTagClick: (tag: string) => void;  // Add this prop to handle tag clicks
 }
 
-const Sidebar = ({ isOpen }: Props) => {
+const Sidebar = ({ isOpen, onClose, onTagClick }: Props) => {
   const [tags, setTags] = useState<string[]>([]);  // State to store top 10 tags
 
   // Fetch the top 10 tags from the API
@@ -29,7 +30,7 @@ const Sidebar = ({ isOpen }: Props) => {
         // Sort tags by frequency and get the top 10
         const sortedTags = Object.entries(tagCounts)
           .sort((a, b) => b[1] - a[1])  // Sort by count in descending order
-          .slice(0, 10)  // Get the top 10 most frequent tags
+          .slice(0, 10);  // Get the top 10 most frequent tags
 
         // Set the top tags into state
         setTags(sortedTags.map(([tag]) => tag));
@@ -73,7 +74,8 @@ const Sidebar = ({ isOpen }: Props) => {
               {tags.map((tag, index) => (
                 <li
                   key={index}
-                  className="text-sm border border-gray-300 border-opacity-60 px-3 py-2 rounded-md"
+                  className="text-sm border border-gray-300 border-opacity-60 px-3 py-2 rounded-md cursor-pointer hover:bg-gray-200"
+                  onClick={() => onTagClick(tag)}  // Trigger onTagClick with the selected tag
                 >
                   {tag}
                 </li>
@@ -104,15 +106,35 @@ const Sidebar = ({ isOpen }: Props) => {
           </div>
           <div className="collapse-content">
             <ul className="space-y-2 text-center">
-              <li className="text-sm border border-gray-300 border-opacity-60 px-3 py-2 rounded-md">Crime</li>
-              <li className="text-sm border border-gray-300 border-opacity-60 px-3 py-2 rounded-md">Lifestyle</li>
-              <li className="text-sm border border-gray-300 border-opacity-60 px-3 py-2 rounded-md">Philosophy</li>
-              <li className="text-sm border border-gray-300 border-opacity-60 px-3 py-2 rounded-md">Movie</li>
+              {/* Example tags for Most Commented, this can be dynamically updated like Most Popular */}
+              <li
+                className="text-sm border border-gray-300 border-opacity-60 px-3 py-2 rounded-md cursor-pointer hover:bg-gray-200"
+                onClick={() => onTagClick('Crime')}  // Example tag for Most Commented
+              >
+                Crime
+              </li>
+              <li
+                className="text-sm border border-gray-300 border-opacity-60 px-3 py-2 rounded-md cursor-pointer hover:bg-gray-200"
+                onClick={() => onTagClick('Lifestyle')}  // Example tag for Most Commented
+              >
+                Lifestyle
+              </li>
+              <li
+                className="text-sm border border-gray-300 border-opacity-60 px-3 py-2 rounded-md cursor-pointer hover:bg-gray-200"
+                onClick={() => onTagClick('Philosophy')}  // Example tag for Most Commented
+              >
+                Philosophy
+              </li>
+              <li
+                className="text-sm border border-gray-300 border-opacity-60 px-3 py-2 rounded-md cursor-pointer hover:bg-gray-200"
+                onClick={() => onTagClick('Movie')}  // Example tag for Most Commented
+              >
+                Movie
+              </li>
             </ul>
           </div>
         </div>
       </div>
-      
     </div>
   );
 };

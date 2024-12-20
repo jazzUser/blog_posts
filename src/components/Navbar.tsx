@@ -5,6 +5,7 @@ import DisplayContent from "./DisplayContent";
 const Navbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [selectedTag, setSelectedTag] = useState<string>(''); // State for selected tag
 
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
@@ -14,10 +15,16 @@ const Navbar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
+  // Callback function to handle tag click from Sidebar
+  const handleTagClick = (tag: string) => {
+    setSelectedTag(tag); // Set the selected tag for filtering
+    setIsSidebarOpen(false); // Optionally close the sidebar on tag click
+  };
+
   return (
     <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar */}
-      <Sidebar isOpen={isSidebarOpen} onClose={toggleSidebar} />
+      <Sidebar isOpen={isSidebarOpen} onClose={toggleSidebar} onTagClick={handleTagClick} />
 
       {/* Main Content */}
       <div
@@ -99,7 +106,7 @@ const Navbar = () => {
 
         {/* DisplayContent */}
         <div className="pt-16"> {/* Account for fixed Navbar height */}
-          <DisplayContent />
+          <DisplayContent selectedTag={selectedTag} /> {/* Pass selectedTag to DisplayContent */}
         </div>
       </div>
     </div>
