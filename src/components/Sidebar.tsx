@@ -3,23 +3,30 @@ import { useEffect, useState } from "react";
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  onTagClick: (tag: string) => void;  // Add this prop to handle tag clicks
+  onTagClick: (tag: string) => void;
 }
 
-const Sidebar = ({ isOpen, onClose, onTagClick }: Props) => {
-  const [tags, setTags] = useState<string[]>([]);  // State to store top 10 tags
+interface Post {
+  tags: string[];
+  reactions: {
+    likes: number;
+    dislikes: number;
+  };
+}
 
-  // Fetch the top 10 tags from the API
+const Sidebar = ({ isOpen, onTagClick }: Props) => {
+  const [tags, setTags] = useState<string[]>([]);  // For top 10 most popular tags
+  const [likedTags, setLikedTags] = useState<string[]>([]);  // For most liked posts tags
+
   useEffect(() => {
-    const fetchTopTags = async () => {
+    const fetchPopularTags = async () => {
       try {
         const res = await fetch('https://dummyjson.com/posts');
         const data = await res.json();
 
         const tagCounts: { [key: string]: number } = {};
 
-        // Count the frequency of each tag
-        data.posts.forEach((post: { tags: string[] }) => {
+        data.posts.forEach((post: Post) => {
           if (Array.isArray(post.tags)) {
             post.tags.forEach((tag: string) => {
               tagCounts[tag] = (tagCounts[tag] || 0) + 1;
@@ -27,19 +34,46 @@ const Sidebar = ({ isOpen, onClose, onTagClick }: Props) => {
           }
         });
 
-        // Sort tags by frequency and get the top 10
         const sortedTags = Object.entries(tagCounts)
-          .sort((a, b) => b[1] - a[1])  // Sort by count in descending order
-          .slice(0, 10);  // Get the top 10 most frequent tags
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 10);
 
-        // Set the top tags into state
         setTags(sortedTags.map(([tag]) => tag));
       } catch (error) {
-        console.error('Error fetching posts:', error);
+        console.error("Error fetching posts:", error);
       }
     };
 
-    fetchTopTags();
+    const fetchLikedTags = async () => {
+      try {
+        const res = await fetch('https://dummyjson.com/posts');
+        const data = await res.json();
+
+        const sortedPosts = data.posts.sort(
+          (a: Post, b: Post) => b.reactions.likes - a.reactions.likes
+        );
+
+        const topLikedPosts = sortedPosts.slice(0, 10);
+        const likedTags: string[] = [];
+
+        topLikedPosts.forEach((post: Post) => {
+          if (Array.isArray(post.tags)) {
+            post.tags.forEach((tag) => {
+              if (!likedTags.includes(tag)) {
+                likedTags.push(tag);
+              }
+            });
+          }
+        });
+
+        setLikedTags(likedTags);
+      } catch (error) {
+        console.error("Error fetching posts:", error);
+      }
+    };
+
+    fetchPopularTags();
+    fetchLikedTags();
   }, []);
 
   return (
@@ -49,12 +83,13 @@ const Sidebar = ({ isOpen, onClose, onTagClick }: Props) => {
       }`}
     >
       <div className="p-4 h-full">
+        {/* Close button removed */}
+
         {/* Accordion for Most Popular */}
         <div className="collapse collapse-plus border border-gray-300 border-opacity-60 rounded-md mb-4">
           <input type="checkbox" className="peer" />
           <div className="collapse-title text-sm font-medium px-4 py-1 flex items-center justify-between">
             <span className="flex-1 text-left">Most Popular</span>
-            {/* Only show the minus icon when the accordion is open */}
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -75,7 +110,7 @@ const Sidebar = ({ isOpen, onClose, onTagClick }: Props) => {
                 <li
                   key={index}
                   className="text-sm border border-gray-300 border-opacity-60 px-3 py-2 rounded-md cursor-pointer hover:bg-gray-200"
-                  onClick={() => onTagClick(tag)}  // Trigger onTagClick with the selected tag
+                  onClick={() => onTagClick(tag)}
                 >
                   {tag}
                 </li>
@@ -84,12 +119,11 @@ const Sidebar = ({ isOpen, onClose, onTagClick }: Props) => {
           </div>
         </div>
 
-        {/* Accordion for Most Commented */}
+        {/* Accordion for Most Liked */}
         <div className="collapse collapse-plus border border-gray-300 border-opacity-60 rounded-md">
           <input type="checkbox" className="peer" />
           <div className="collapse-title text-sm font-medium px-4 py-1 flex items-center justify-between">
-            <span className="flex-1 text-left">Most Commented</span>
-            {/* Only show the minus icon when the accordion is open */}
+            <span className="flex-1 text-left">Most Liked</span>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -106,31 +140,15 @@ const Sidebar = ({ isOpen, onClose, onTagClick }: Props) => {
           </div>
           <div className="collapse-content">
             <ul className="space-y-2 text-center">
-              {/* Example tags for Most Commented, this can be dynamically updated like Most Popular */}
-              <li
-                className="text-sm border border-gray-300 border-opacity-60 px-3 py-2 rounded-md cursor-pointer hover:bg-gray-200"
-                onClick={() => onTagClick('Crime')}  // Example tag for Most Commented
-              >
-                Crime
-              </li>
-              <li
-                className="text-sm border border-gray-300 border-opacity-60 px-3 py-2 rounded-md cursor-pointer hover:bg-gray-200"
-                onClick={() => onTagClick('Lifestyle')}  // Example tag for Most Commented
-              >
-                Lifestyle
-              </li>
-              <li
-                className="text-sm border border-gray-300 border-opacity-60 px-3 py-2 rounded-md cursor-pointer hover:bg-gray-200"
-                onClick={() => onTagClick('Philosophy')}  // Example tag for Most Commented
-              >
-                Philosophy
-              </li>
-              <li
-                className="text-sm border border-gray-300 border-opacity-60 px-3 py-2 rounded-md cursor-pointer hover:bg-gray-200"
-                onClick={() => onTagClick('Movie')}  // Example tag for Most Commented
-              >
-                Movie
-              </li>
+              {likedTags.map((tag, index) => (
+                <li
+                  key={index}
+                  className="text-sm border border-gray-300 border-opacity-60 px-3 py-2 rounded-md cursor-pointer hover:bg-gray-200"
+                  onClick={() => onTagClick(tag)}
+                >
+                  {tag}
+                </li>
+              ))}
             </ul>
           </div>
         </div>
