@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 interface Props {
   isOpen: boolean;
@@ -112,6 +112,7 @@ const Sidebar = ({ isOpen }: Props) => {
           </div>
         </div>
       </div>
+      
     </div>
   );
 };
